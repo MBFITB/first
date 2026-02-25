@@ -112,9 +112,24 @@ export const getCategoryOption = (category) => {
         series: [{
             type: 'pie',
             radius: ['40%', '70%'],
+            minAngle: 15,
+            avoidLabelOverlap: true,
             itemStyle: { borderRadius: 10, borderColor: '#fff', borderWidth: 2 },
             data,
-            label: { show: true, formatter: '{b}\n{d}%' },
+            label: {
+                show: true,
+                formatter: '{b}\n{d}%',
+                fontSize: 12,
+            },
+            labelLine: {
+                show: true,
+                length: 15,
+                length2: 25,
+                smooth: true,
+            },
+            labelLayout: {
+                moveOverlap: 'shiftY',
+            },
         }],
     }
 }
