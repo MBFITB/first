@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+env/
+venv/
+.venv/
+.env
+
+# Spark/Hadoop
+hadoop_home/
+metastore_db/
+spark-warehouse/
+*.log
+
+# Data Files (Local DB & CSVs)
+*.csv
+*.db
+*.sqlite
+
+# Large Media
+*.jpg
+*.png
+*.webp
+!doc/*.png
+!doc/*.webp
+
+# IDEs
+.vscode/
+.idea/
+
+# Node / Frontend
+node_modules/
+dist/
+.eslintcache
+.stylelintcache
+*.local
+
+# OS
+.DS_Store
+Thumbs.db

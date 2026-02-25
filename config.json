@@ -1,0 +1,24 @@
+{
+    "ch_host": "localhost",
+    "ch_port": 8123,
+    "ch_user": "default",
+    "ch_password": "password123",
+    "ch_database": "default",
+    "behavior_csv": "UserBehavior.csv",
+    "items_csv": "items_simulated.csv",
+    "users_csv": "users_simulated.csv",
+    "data_limit": 1000000,
+    "driver_memory": "4g",
+    "default_parallelism": "8",
+    "locality_wait": "3s",
+    "rfm_weights": {
+        "R": -0.2,
+        "F": 0.3,
+        "M": 0.5
+    },
+    "rfm_thresholds": {
+        "high_r": 0.5,
+        "high_m": 0.3,
+        "high_f": 0.3
+    }
+}
