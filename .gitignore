@@ -35,7 +35,9 @@ dist/
 .eslintcache
 .stylelintcache
 *.local
-
 # OS
 .DS_Store
 Thumbs.db
+
+# Locally ignored paths
+doc/
