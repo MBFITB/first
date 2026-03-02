@@ -10,6 +10,9 @@
         <el-menu-item index="1">
           <el-icon><Monitor /></el-icon><span>多源数据融合大屏</span>
         </el-menu-item>
+        <el-menu-item index="2" @click="aiDrawerVisible = true">
+          <el-icon><ChatDotRound /></el-icon><span style="color: #38bdf8; font-weight: bold;">AI 数据助手 ✨</span>
+        </el-menu-item>
       </el-menu>
     </el-aside>
 
@@ -74,6 +77,9 @@
         <!-- 🎉 深度交互：单日数据折叠侧边抽屉 -->
         <DailyDetailDrawer v-model:visible="drawerVisible" :selectedDate="selectedDate" />
         
+        <!-- ✨ AI 自然语言数据助手侧边抽屉 -->
+        <AiAssistantDrawer v-model="aiDrawerVisible" />
+        
       </el-main>
     </el-container>
   </el-container>
@@ -81,12 +87,13 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Monitor, DataAnalysis } from '@element-plus/icons-vue'
+import { Monitor, DataAnalysis, ChatDotRound } from '@element-plus/icons-vue'
 
 import HeaderBar from '@/components/HeaderBar.vue'
 import MetricCards from '@/components/MetricCards.vue'
 import BaseChart from '@/components/BaseChart.vue'
 import DailyDetailDrawer from '@/components/DailyDetailDrawer.vue'
+import AiAssistantDrawer from '@/components/AiAssistantDrawer.vue'
 
 import { useEcharts } from '@/composables/useEcharts'
 import { fetchDashboardAll, fetchDateRange, fetchDashboardFallback } from '@/api/dashboard'
@@ -114,6 +121,9 @@ const dataRangeLimit = ref({ min: null, max: null })
 // 新增交互状态：控制侧边抽屉及选中的日期
 const drawerVisible = ref(false)
 const selectedDate = ref('')
+
+// 新增状态：控制 AI 数据助手的侧边抽屉
+const aiDrawerVisible = ref(false)
 
 // ── BaseChart 组件引用 ──
 const chartTrendComp = ref(null)

@@ -9,6 +9,9 @@ passlib[bcrypt]>=1.7.4
 # 数据库连接
 clickhouse-connect>=0.7.0
 
+# LLM API 调用
+httpx>=0.27.0
+
 # 数据生成
 numpy>=1.24.0
 

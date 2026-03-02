@@ -12,7 +12,10 @@ from core.logging import logger
 from db.manager import db_manager
 from api.exception_handlers import http_exception_handler, global_exception_handler
 from api.middleware import verify_jwt_token
-from api.routers import auth, dashboard, charts
+from api.routers import auth, dashboard, charts, ai_chat
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
 
 
 # --- 生命周期事件 ---
@@ -65,10 +68,28 @@ app.add_exception_handler(Exception, global_exception_handler)
 app.include_router(auth.router)
 app.include_router(dashboard.router)
 app.include_router(charts.router)
+app.include_router(ai_chat.router)
 
 
+# --- 前端静态页面托管 ---
 
-
+frontend_dist = os.path.join(os.path.dirname(__file__), "frontend", "dist")
+if os.path.isdir(frontend_dist):
+    app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist, "assets")), name="assets")
+    
+    @app.get("/")
+    async def serve_index():
+        return FileResponse(os.path.join(frontend_dist, "index.html"))
+        
+    @app.get("/{catchall:path}")
+    async def serve_catchall(catchall: str):
+        # API 路由 404
+        if catchall.startswith("api/"):
+            raise HTTPException(status_code=404, detail="API route not found")
+        # 其他路由全部 fallback 到 index.html 由 vue-router 处理
+        return FileResponse(os.path.join(frontend_dist, "index.html"))
+else:
+    logger.warning("未找到 frontend/dist 目录，前端静态页面托管不可用。请先运行 npm run build")
 # --- 启动入口 ---
 
 if __name__ == '__main__':

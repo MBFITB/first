@@ -20,5 +20,8 @@
         "high_r": 0.5,
         "high_m": 0.3,
         "high_f": 0.3
-    }
+    },
+    "llm_api_key": "sk-000ae2f2492045e8840bd85200945bae",
+    "llm_api_url": "https://api.deepseek.com/chat/completions",
+    "llm_model": "deepseek-chat"
 }

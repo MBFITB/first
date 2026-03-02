@@ -1,8 +1,5 @@
 # 电商数据全景分析系统 — 技术架构说明文档
 
-> **版本**：v3.0.0  
-> **技术栈**：PySpark ETL · FastAPI · Vue 3 + ECharts · SQLite / ClickHouse  
-> **最后更新**：2026-02-28
 
 ---
 
@@ -126,7 +123,7 @@
 ├── doc/                     # 📄 文档目录
 ├── hadoop_home/             # Windows Hadoop 占位目录 (winutils.exe)
 ├── UserBehavior.csv         # 原始用户行为数据 (~200 万行)
-├── items_simulated.csv      # 商品维表 (~5000 条)
+├── items_simulated.csv      # 商品维表 (~10000 条)
 └── users_simulated.csv      # 用户维表 (~50000 条)
 ```
 
@@ -166,7 +163,7 @@ ClickHouseBackend (具体实现)  ← 使用 clickhouse-connect Client
 
 - **单例模式**：双重检查锁定 (`__new__` + `threading.Lock`)
 - **SQLite**：`threading.local()` 每线程独立连接缓存，支持 WAL 并发读取
-- **ClickHouse**：`urllib3.PoolManager` 内置连接池 + 指数退避重连（最多 3 次）
+- **ClickHouse**：缓存单个 `clickhouse-connect` Client 实例复用 + 指数退避重连（最多 3 次）
 - **断路器机制**：ClickHouse 连接全部失败后打开断路器 60 秒，期间直接回退 SQLite
 - **心跳 TTL**：每 10 秒探测一次 ClickHouse 可用性，减少不必要的网络往返
 - **日期范围缓存**：60 秒 TTL，避免每个请求重复查询 MIN/MAX 日期
@@ -177,7 +174,7 @@ ClickHouseBackend (具体实现)  ← 使用 clickhouse-connect Client
 - **中间件拦截**：所有请求默认校验 Token，白名单路径放行（登录、Swagger 文档）
 - **CORS 白名单**：从环境变量 `CORS_ORIGINS` 读取，默认允许 `localhost:5173`
 - **period 参数白名单**：枚举限制合法值为 `day/week/month`，防止 SQL 注入
-- **参数化查询**：所有日期参数使用参数化绑定，不拼接 SQL
+- **参数化查询**：所有用户输入的日期参数使用参数化绑定，不拼接 SQL
 
 ### 3.5 API 端点清单
 
@@ -199,7 +196,7 @@ ClickHouseBackend (具体实现)  ← 使用 clickhouse-connect Client
 | 账号 | 密码 | 角色 | 说明 |
 |------|------|------|------|
 | `admin` | `123456` | admin | 管理员，完整权限 |
-| `viewer` | `123456` | viewer | 观察者，只读权限 |
+| `viewer` | `123456` | viewer | 观察者角色（当前版本未实现角色级权限差异，仅作标记预留） |
 
 ---
 
@@ -310,14 +307,14 @@ App.vue                        ← 根组件：登录/看板状态切换
 | 日流量 | 双11 高斯叠加 | 11 月 11 日 5 倍峰值，高斯衰减 |
 | 小时流量 | 潮汐分布 | 晚高峰 19-23 点权重 1.5~2.0 |
 | 转化漏斗 | 分层概率 | PV→Cart 10%, Cart→Buy 20% |
-| 价格摩擦 | Sigmoid 衰减 | 价格越高转化越难 |
+| 价格摩擦 | 逆幂律衰减 | 价格越高转化越难，公式: 1/(1+(price/200)^1.5) |
 | 用户留存 | 指数衰减 | 模拟用户活跃天数 |
 
 ---
 
 ## 七、测试体系
 
-共 **10 个测试文件**，覆盖后端各层：
+共 **9 个测试文件**（另有 1 个 conftest.py 测试夹具），覆盖后端各层：
 
 | 文件 | 测试对象 | 测试内容 |
 |------|---------|---------|
@@ -394,4 +391,4 @@ pytest tests/ -v --cov=. --cov-report=term-missing
 | **工厂方法** | `db/manager.py#get_backend()` | 根据连接类型自动创建对应 Backend |
 | **断路器模式** | `db/manager.py` | ClickHouse 失败后 60s 内直接回退 SQLite |
 | **上下文管理器** | `db/manager.py#get_sqlite_cursor()` | 自动管理 cursor 生命周期 |
-| **观察者(回调)** | `frontend/api/request.js` | `setUnauthorizedHandler` 注入 401 登出回调 |
+| **回调注入** | `frontend/api/request.js` | `setUnauthorizedHandler` 注入 401 登出回调，避免循环依赖 |

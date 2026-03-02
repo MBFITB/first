@@ -20,7 +20,7 @@ CH_RETRY_BACKOFF = 2.0      # 退避倍数
 # 从环境变量读取允许的前端域名，支持部署时动态配置
 CORS_ORIGINS = os.environ.get(
     "CORS_ORIGINS",
-    "http://localhost:5173,http://127.0.0.1:5173"
+    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:8000,http://127.0.0.1:8000"
 ).split(",")
 
 # --- 业务参数 ---
@@ -47,4 +47,33 @@ JWT_WHITELIST_PATTERNS = [
     re.compile(r"^/redoc(/.*)?$"),         # ReDoc 及其静态资源
     re.compile(r"^/openapi\.json$"),       # OpenAPI 规范
     re.compile(r"^/api/auth/login$"),       # 登录接口
+    re.compile(r"^/$"),                    # 前端首页
+    re.compile(r"^/index\.html$"),         # 前端首页
+    re.compile(r"^/assets(/.*)?$"),        # Vite 静态资源
+    re.compile(r"^/(favicon\.ico|.*\.(png|jpg|jpeg|gif|svg|woff2?|ttf|css|js))$"), # 前端散落资源
 ]
+
+# --- LLM 大语言模型配置 ---
+
+# 优先从 config.json 读取，其次从环境变量读取
+def _load_llm_config():
+    """从 config.json 或环境变量加载 LLM 配置"""
+    import json
+    cfg = {}
+    try:
+        with open("config.json", "r", encoding="utf-8") as f:
+            cfg = json.load(f)
+    except Exception:
+        pass
+    return {
+        "api_key": cfg.get("llm_api_key", os.environ.get("LLM_API_KEY", "")),
+        "api_url": cfg.get("llm_api_url", os.environ.get(
+            "LLM_API_URL", "https://api.deepseek.com/chat/completions"
+        )),
+        "model": cfg.get("llm_model", os.environ.get("LLM_MODEL", "deepseek-chat")),
+    }
+
+_llm_cfg = _load_llm_config()
+LLM_API_KEY = _llm_cfg["api_key"]
+LLM_API_URL = _llm_cfg["api_url"]
+LLM_MODEL = _llm_cfg["model"]
