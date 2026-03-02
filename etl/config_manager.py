@@ -103,12 +103,12 @@ class ConfigManager:
                     errors.append(f"'rfm_thresholds.{k}' 必须为数值")
 
         if errors:
-            print("\n❌ CONFIG 配置预检失败:")
+            print("\n[ERROR] CONFIG 配置预检失败:")
             for e in errors:
                 print(f"  • {e}")
             raise SystemExit(1)
 
-        print("✅ CONFIG 配置预检通过")
+        print("CONFIG 配置预检通过")
 
     # ── Windows Hadoop 环境 ──
 
@@ -130,9 +130,9 @@ class ConfigManager:
 
             os.environ["HADOOP_HOME"] = hadoop_home
             os.environ["PATH"] = hadoop_bin + os.pathsep + os.environ.get("PATH", "")
-            print(f"✅ Windows Hadoop 环境已自动配置: {hadoop_home}")
+            print(f"Windows Hadoop 环境已自动配置: {hadoop_home}")
         else:
-            print(f"✅ 检测到 HADOOP_HOME: {hadoop_home}")
+            print(f"检测到 HADOOP_HOME: {hadoop_home}")
 
     # ── JDBC 信息 ──
 

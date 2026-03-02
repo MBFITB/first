@@ -64,7 +64,7 @@ class DataWriter:
         [6/6] 写入数据库。
         :param write_tasks: [(DataFrame, table_name), ...]
         """
-        print("💾 [6/6] 写入数据库...")
+        print("[6/6] 写入数据库...")
         self._detect_clickhouse()
 
         if self.ch_available:
@@ -85,7 +85,7 @@ class DataWriter:
             self.ch_available = True
             print("  ✔ ClickHouse 连接成功，使用原子写入模式")
         except Exception as e:
-            print(f"  ⚠️ ClickHouse 不可用 ({e})，回退到 SQLite 写入")
+            print(f"  [WARN] ClickHouse 不可用 ({e})，回退到 SQLite 写入")
 
     # ── ClickHouse 原子写入路径 ──
 
@@ -133,7 +133,7 @@ class DataWriter:
             )
             print("  ✔ 数据质量报告已写入 etl_dq_log")
         except Exception as e:
-            print(f"  ⚠️ 写入 etl_dq_log 失败: {e}")
+            print(f"  [WARN] 写入 etl_dq_log 失败: {e}")
 
     # ── SQLite 回退路径 ──
 
@@ -141,7 +141,7 @@ class DataWriter:
         """SQLite 回退写入"""
         sqlite_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ecommerce.db")
         sqlite_path = os.path.normpath(sqlite_path)
-        print(f"  📂 SQLite 写入路径: {sqlite_path}")
+        print(f"  SQLite 写入路径: {sqlite_path}")
 
         conn = sqlite3.connect(sqlite_path)
 

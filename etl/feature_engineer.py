@@ -23,7 +23,7 @@ class FeatureEngineer:
         执行完整的 RFM 聚类流程。
         返回 user_rfm DataFrame（包含 user_id 和 rfm_label 两列）。
         """
-        print("🧪 [2/6] 特征工程与 KMeans 聚类打标...")
+        print("[2/6] 特征工程与 KMeans 聚类打标...")
 
         # Step 1: 计算 RFM 原始指标
         rfm_base = df_joined.filter(F.col("type") == "buy").groupBy("user_id").agg(

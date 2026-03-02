@@ -67,7 +67,7 @@ def main():
         # ── Step 6: 释放资源 + 输出报告 ──
         loader.unpersist()
         dq.print_report()
-        print("🏁 [完成] ETL 流水线执行完毕。")
+        print("[完成] ETL 流水线执行完毕。")
         loader.stop_spark()
 
 

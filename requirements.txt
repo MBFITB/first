@@ -1,0 +1,23 @@
+# 后端 Web 服务
+fastapi>=0.100.0
+uvicorn>=0.23.0
+pydantic>=2.0.0
+python-dateutil>=2.8.0
+PyJWT>=2.8.0
+passlib[bcrypt]>=1.7.4
+
+# 数据库连接
+clickhouse-connect>=0.7.0
+
+# 数据生成
+numpy>=1.24.0
+
+# ETL (PySpark)
+pyspark>=3.4.0
+
+# 测试
+pytest>=7.0.0
+pytest-cov>=4.0.0
+
+# 前端依赖请参考 frontend/package.json
+# 主要包括: vue@3, echarts, element-plus, axios

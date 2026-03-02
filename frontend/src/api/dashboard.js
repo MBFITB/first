@@ -13,7 +13,7 @@ import request from './request'
 export async function fetchDashboardAll(params) {
     try {
         const res = await request.get('/api/dashboard/all', { params })
-        if (res.data?.code === 200) {
+        if (res.data && res.data.code === 200) {
             return res.data.data
         }
     } catch (e) {
@@ -28,7 +28,7 @@ export async function fetchDashboardAll(params) {
 export async function fetchDateRange() {
     try {
         const res = await request.get('/api/config/date_range')
-        if (res.data?.code === 200) {
+        if (res.data && res.data.code === 200) {
             return res.data.data
         }
     } catch (e) {
@@ -67,14 +67,14 @@ export async function fetchDashboardFallback(params, period) {
     // 安全提取数据
     const safeData = (index, fallback = {}) => {
         const res = results[index]
-        if (res.status === 'fulfilled' && res.value.data.code === 200) {
+        if (res.status === 'fulfilled' && res.value.data && res.value.data.code === 200) {
             return res.value.data.data || fallback
         }
         return fallback
     }
 
     const failedCount = results.filter(
-        (r) => r.status === 'rejected' || (r.status === 'fulfilled' && r.value.data.code !== 200)
+        (r) => r.status === 'rejected' || (r.status === 'fulfilled' && (!r.value.data || r.value.data.code !== 200))
     ).length
 
     return {

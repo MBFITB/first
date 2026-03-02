@@ -67,19 +67,29 @@ class DatabaseManager:
         self._date_range_cache: Optional[tuple] = None
         self._date_range_ts: float = 0.0
         self._date_range_ttl: float = 60.0
+        # ClickHouse 心跳与断路器配置
+        self._ch_heartbeat_ts: float = 0.0
+        self._ch_heartbeat_ttl: float = 10.0  # 心跳缓存 10 秒
+        self._ch_cb_open_until: float = 0.0   # 断路器打开到什么时间（默认闭合）
 
-    def get_date_range_cached(self, fetch_impl_func, db, is_sqlite: bool) -> tuple:
+    def get_date_range_cached(self, backend) -> tuple:
         """
         获取日期范围，60 秒内复用缓存。
-        fetch_impl_func: 实际获取日期范围的函数，由 dao 层传入以避免循环依赖。
+        backend: DatabaseBackend 实例，直接调用其 fetch_date_range_impl() 方法。
         """
         now = time.time()
         if self._date_range_cache and (now - self._date_range_ts) < self._date_range_ttl:
             return self._date_range_cache
-        result = fetch_impl_func(db, is_sqlite)
+        result = backend.fetch_date_range_impl()
         self._date_range_cache = result
         self._date_range_ts = now
         return result
+
+    def get_backend(self):
+        """获取当前活跃的 DatabaseBackend 实例（策略模式入口）"""
+        db, is_sqlite = self.get_connection()
+        from dao.backend import get_backend as _factory
+        return _factory(db, is_sqlite)
 
     def _try_clickhouse_with_retry(self) -> bool:
         """
@@ -98,11 +108,12 @@ class DatabaseManager:
                 self._ch_client = client
                 self._ch_available = True
                 self._backend_type = "clickhouse"
-                logger.info("✅ ClickHouse 连接成功（第 %d 次尝试），使用 ClickHouse 后端", attempt)
+                self._ch_heartbeat_ts = time.time()
+                logger.info("ClickHouse 连接成功（第 %d 次尝试），使用 ClickHouse 后端", attempt)
                 return True
             except Exception as e:
                 logger.warning(
-                    "⚠️ ClickHouse 连接失败（第 %d/%d 次）: %s",
+                    "ClickHouse 连接失败（第 %d/%d 次）: %s",
                     attempt, CH_MAX_RETRIES, str(e)
                 )
                 if attempt < CH_MAX_RETRIES:
@@ -110,7 +121,8 @@ class DatabaseManager:
                     delay *= CH_RETRY_BACKOFF
 
         self._ch_available = False
-        logger.warning("❌ ClickHouse 全部 %d 次重试失败，回退到 SQLite", CH_MAX_RETRIES)
+        self._ch_cb_open_until = time.time() + 60.0  # 连不上时打开断路器 60 秒
+        logger.warning("ClickHouse 全部 %d 次重试失败，回退到 SQLite (断路器打开 60s)", CH_MAX_RETRIES)
         return False
 
     def _get_sqlite_conn(self) -> sqlite3.Connection:
@@ -137,7 +149,7 @@ class DatabaseManager:
 
         if self._backend_type != "sqlite":
             self._backend_type = "sqlite"
-            logger.info("⚠️ 使用 SQLite 后端: %s", SQLITE_DB)
+            logger.info("使用 SQLite 后端: %s", SQLITE_DB)
         return conn
 
     def get_connection(self):
@@ -145,28 +157,38 @@ class DatabaseManager:
         获取数据库连接。
         返回: (connection_or_client, is_sqlite: bool)
         """
-        # 如果已确认 ClickHouse 可用，直接返回缓存的 client
+        now = time.time()
+
+        # 断路器开启中，直接回退 SQLite 保护系统
+        if now < self._ch_cb_open_until:
+            return self._get_sqlite_conn(), True
+
+        # 如果已确认 ClickHouse 可用，检查心跳
         if self._ch_available is True and self._ch_client is not None:
+            # 采用 TTL 缓存：距离上次成功心跳在 10s 内，则直接认定可用，减少网络往返
+            if (now - self._ch_heartbeat_ts) < self._ch_heartbeat_ttl:
+                return self._ch_client, False
+
             try:
-                # 简易心跳检测，确保连接仍然有效
+                # 心跳过期，真实去检测一次
                 self._ch_client.query("SELECT 1")
+                self._ch_heartbeat_ts = now
                 return self._ch_client, False
             except Exception:
                 logger.warning("ClickHouse 心跳失败，尝试重新连接...")
                 with self._ch_lock:
-                    # 双重检查：可能其他线程已经重连
                     if self._ch_available is True:
                         self._ch_client = None
                         self._ch_available = None
 
-        # 首次检测或 ClickHouse 失效后重试（加锁避免多线程同时重连）
+        # 首次检测或 ClickHouse 失效后重试
         if self._ch_available is None:
             with self._ch_lock:
-                if self._ch_available is None:  # 双重检查
+                if self._ch_available is None:
                     if self._try_clickhouse_with_retry():
                         return self._ch_client, False
 
-        # 回退到 SQLite（每线程独立连接，无锁竞争）
+        # 回退到 SQLite
         return self._get_sqlite_conn(), True
 
     @contextmanager

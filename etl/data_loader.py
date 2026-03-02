@@ -99,7 +99,7 @@ class DataLoader:
                 f"发现 {missing_price_count} 条记录缺失价格(price)字段，已被丢弃。"
                 f"生产环境下应写入死信队列排查。"
             )
-            print(f"  ⚠️ [数据质量告警] {missing_price_count} 条缺失价格记录已丢弃")
+            print(f"  [WARN] [数据质量告警] {missing_price_count} 条缺失价格记录已丢弃")
         if missing_channel > 0:
             self.dq.add_warning(f"发现 {missing_channel} 条记录缺失渠道(channel)字段，已填充为'未知渠道'")
         if missing_age > 0:

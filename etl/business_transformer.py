@@ -17,7 +17,7 @@ class BusinessTransformer:
         [3/6] 计算同期群留存矩阵（Day 0~7）。
         返回 cohort_matrix DataFrame。
         """
-        print("📊 [3/6] 计算同期群留存矩阵...")
+        print("[3/6] 计算同期群留存矩阵...")
         user_cohorts = df_joined.groupBy("user_id").agg(F.min("date").alias("cohort_date"))
         cohort_sizes = user_cohorts.groupBy("cohort_date").agg(F.count("user_id").alias("cohort_users"))
 
@@ -35,7 +35,7 @@ class BusinessTransformer:
         [4/6] 计算双口径漏斗（严格时序约束 + 宽松非时序约束）。
         返回 (user_funnel_mart, user_funnel_loose_mart)
         """
-        print("💾 [4/6] 计算转化漏斗（双口径：严格时序约束 + 宽松非时序约束）...")
+        print("[4/6] 计算转化漏斗（双口径：严格时序约束 + 宽松非时序约束）...")
 
         # Step 1: 按 (user_id, item_id) 聚合每种行为最早时间戳
         item_funnel = df_joined.groupBy("user_id", "item_id").agg(
@@ -142,7 +142,7 @@ class BusinessTransformer:
 
     def extract_buy_fact(self, df_joined):
         """[5/6] 抽取 buy_fact 事实表"""
-        print("💾 [5/6] 抽取底层业务事实表...")
+        print("[5/6] 抽取底层业务事实表...")
         buy_fact = df_joined.filter(F.col("type") == "buy").select(
             "date", "user_id", "order_id", "item_id", "category_id", "price", "channel", "age_group"
         )

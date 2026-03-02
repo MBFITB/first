@@ -3,10 +3,10 @@
 
     <el-aside width="220px" class="aside-menu">
       <div class="logo-area">
-        <el-icon :size="18"><DataAnalysis /></el-icon>
-        <span style="margin-left: 10px;">全景电商分析系统</span>
+        <el-icon :size="20"><DataAnalysis /></el-icon>
+        <span style="margin-left: 10px; letter-spacing: 0.5px;">数据全景洞察系统</span>
       </div>
-      <el-menu default-active="1" background-color="#001529" text-color="#a6adb4" active-text-color="#fff">
+      <el-menu default-active="1" background-color="#0A192F" text-color="#94a3b8" active-text-color="#ffffff" class="modern-menu">
         <el-menu-item index="1">
           <el-icon><Monitor /></el-icon><span>多源数据融合大屏</span>
         </el-menu-item>
@@ -65,11 +65,15 @@
         </el-row>
 
         <!-- 留存热力图 -->
-        <el-row :gutter="20">
+        <el-row class="m-b-20">
           <el-col :span="24">
             <BaseChart ref="chartRetentionComp" title="同期群分析：N-Day 留存率衰减热力图矩阵 (Cohort Heatmap)" :hasData="hasData.retention" emptyText="暂无留存数据" :wide="true" />
           </el-col>
         </el-row>
+        
+        <!-- 🎉 深度交互：单日数据折叠侧边抽屉 -->
+        <DailyDetailDrawer v-model:visible="drawerVisible" :selectedDate="selectedDate" />
+        
       </el-main>
     </el-container>
   </el-container>
@@ -82,6 +86,7 @@ import { Monitor, DataAnalysis } from '@element-plus/icons-vue'
 import HeaderBar from '@/components/HeaderBar.vue'
 import MetricCards from '@/components/MetricCards.vue'
 import BaseChart from '@/components/BaseChart.vue'
+import DailyDetailDrawer from '@/components/DailyDetailDrawer.vue'
 
 import { useEcharts } from '@/composables/useEcharts'
 import { fetchDashboardAll, fetchDateRange, fetchDashboardFallback } from '@/api/dashboard'
@@ -105,6 +110,10 @@ const period = ref('day')
 const periodLabel = ref('日')
 const metrics = ref({})
 const dataRangeLimit = ref({ min: null, max: null })
+
+// 新增交互状态：控制侧边抽屉及选中的日期
+const drawerVisible = ref(false)
+const selectedDate = ref('')
 
 // ── BaseChart 组件引用 ──
 const chartTrendComp = ref(null)
@@ -142,7 +151,20 @@ const handleLogout = () => {
 
 // ── 渲染所有图表 ──
 const renderAllCharts = (data) => {
-  renderChart(chartTrend, 'trend', data.trend || {}, getTrendOption, d => Array.isArray(d.dates) && d.dates.length > 0)
+  renderChart(
+    chartTrend,
+    'trend',
+    data.trend || {},
+    getTrendOption,
+    d => Array.isArray(d.dates) && d.dates.length > 0,
+    // 【交互】点击趋势图上的某个点，打开当日详情下钻抽屉
+    (params) => {
+      if (params.name) {
+        selectedDate.value = params.name
+        drawerVisible.value = true
+      }
+    }
+  )
   renderChart(chartFunnel, 'funnel', data.funnel || [], getFunnelOption, d => Array.isArray(d) && d.length > 0)
   renderChart(chartTop, 'top10', data.rankings || {}, getTop10Option, d => Array.isArray(d.items) && d.items.length > 0)
 
@@ -161,7 +183,7 @@ const fetchData = async () => {
   errorMsg.value = ''
 
   const params = {}
-  if (dateRange.value?.length === 2) {
+  if (dateRange.value && dateRange.value.length === 2) {
     params.start_date = dateRange.value[0]
     params.end_date = dateRange.value[1]
   }
@@ -255,11 +277,57 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.dashboard-wrapper { height: 100vh; background: #f0f2f5; overflow-y: auto; }
-.aside-menu { background: #001529 !important; box-shadow: 2px 0 10px rgba(0,0,0,0.2); }
-.logo-area { height: 60px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; background: #002140; font-size: 16px; }
-.main-body { padding: 30px; }
-.m-b-20 { margin-bottom: 20px; }
-:deep(.el-card) { border-radius: 10px; border: none; }
-:deep(.el-card__header) { background: #fafafa; font-weight: bold; font-size: 15px; }
+.dashboard-wrapper { height: 100vh; background: #f3f4f6; overflow-y: auto; }
+.aside-menu { 
+  background: #0A192F !important; /* 现代 Saas 侧边栏色彩 */
+  box-shadow: 2px 0 16px rgba(0,0,0,0.06); 
+  z-index: 200;
+  border-right: none;
+}
+.logo-area { 
+  height: 64px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  color: #fff; 
+  font-weight: 700; 
+  background: linear-gradient(90deg, #112240 0%, #0A192F 100%);
+  font-size: 16px; 
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.modern-menu {
+  border-right: none;
+  margin-top: 10px;
+}
+.modern-menu .el-menu-item {
+  margin: 0 12px 8px;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+.modern-menu .el-menu-item.is-active {
+  background: rgba(56, 189, 248, 0.1) !important;
+  color: #38bdf8 !important;
+}
+
+.main-body { padding: 32px; }
+.m-b-20 { margin-bottom: 24px; }
+
+/* 图表卡片基础样式重写 */
+:deep(.el-card) { 
+  border-radius: 16px; 
+  border: none; 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02) !important;
+  transition: box-shadow 0.3s;
+}
+:deep(.el-card:hover) {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06) !important;
+}
+:deep(.el-card__header) { 
+  background: #ffffff; 
+  font-weight: 600; 
+  font-size: 15px; 
+  color: #1f2937;
+  border-bottom: 1px solid #f3f4f6;
+  padding: 16px 20px;
+}
 </style>

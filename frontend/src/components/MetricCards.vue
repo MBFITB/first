@@ -43,8 +43,8 @@ defineProps({
 /**
  * 安全数字转换
  */
-const safeNumber = (val, fallback = 0) => {
-  if (val === null || val === undefined) return null
+const safeNumber = (val, fallback = null) => {
+  if (val === null || val === undefined) return fallback
   const n = Number(val)
   return Number.isFinite(n) ? n : fallback
 }
@@ -62,11 +62,38 @@ const formatRate = (val) => {
 </script>
 
 <style scoped>
-.metric-card { text-align: center; border: none; border-top: 5px solid #409EFF; }
-.m-label { font-size: 14px; color: #8c8c8c; margin-bottom: 8px; }
-.m-value { font-size: 30px; font-weight: bold; color: #262626; font-family: monospace; }
-.m-sub { font-size: 12px; color: #bfbfbf; margin-top: 5px; }
-.m-sub .up { color: #f5222d; font-weight: bold; }
-.m-sub .down { color: #52c41a; font-weight: bold; }
-.m-b-20 { margin-bottom: 20px; }
+.metric-card { 
+  text-align: center; 
+  border: none; 
+  border-radius: 16px;
+  background: #ffffff;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+.metric-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+}
+.m-label { 
+  font-size: 14px; 
+  font-weight: 500;
+  color: #6b7280; 
+  margin-bottom: 12px; 
+  letter-spacing: 0.5px;
+}
+.m-value { 
+  font-size: 32px; 
+  font-weight: 700; 
+  color: #111827; 
+  font-family: 'Inter', monospace; 
+  line-height: 1.2;
+}
+.m-sub { 
+  font-size: 13px; 
+  color: #9ca3af; 
+  margin-top: 10px; 
+}
+.m-sub .up { color: #ef4444; font-weight: 600; }
+.m-sub .down { color: #10b981; font-weight: 600; }
+.m-b-20 { margin-bottom: 24px; }
 </style>

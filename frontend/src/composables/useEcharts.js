@@ -72,8 +72,9 @@ export function useEcharts(chartRefs = []) {
      * 安全地渲染指定图表
      * - 如果没有数据，标记 hasData 为 false（触发 el-empty 显示）
      * - optionFn 内部做了数据格式校验，此处再包裹 try-catch 提供最终兜底
+     * @param {Function} [onClick] - 可选的点击事件处理函数
      */
-    const renderChart = (elRef, name, data, optionFn, hasDataCheck) => {
+    const renderChart = (elRef, name, data, optionFn, hasDataCheck, onClick) => {
         let dataAvailable = false
         try {
             dataAvailable = hasDataCheck(data)
@@ -91,6 +92,13 @@ export function useEcharts(chartRefs = []) {
                 if (chart) {
                     const option = optionFn(data)
                     chart.setOption(option, true)
+
+                    // 绑定点击事件前先解绑，防止重复触发
+                    chart.off('click')
+                    if (typeof onClick === 'function') {
+                        chart.on('click', onClick)
+                    }
+
                     chart.resize()
                 }
             } catch (err) {

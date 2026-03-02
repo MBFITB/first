@@ -23,9 +23,7 @@ import datetime
 import numpy as np
 from collections import defaultdict
 
-# ════════════════════════════════════════════════════════════════════
-# 全局配置
-# ════════════════════════════════════════════════════════════════════
+# --- 全局配置 ---
 
 SEED = 42
 np.random.seed(SEED)
@@ -48,9 +46,7 @@ ITEMS_FILE = os.path.join(OUTPUT_DIR, "items_simulated.csv")
 USERS_FILE = os.path.join(OUTPUT_DIR, "users_simulated.csv")
 
 
-# ════════════════════════════════════════════════════════════════════
-# [1] 生成商品维表 (items_simulated.csv)
-# ════════════════════════════════════════════════════════════════════
+# --- [1] 生成商品维表 (items_simulated.csv) ---
 
 def generate_items():
     """
@@ -61,7 +57,7 @@ def generate_items():
       - 高价 (800~5000): 占 10%  → 浏览适中, 极低转化
     使用 log-normal 分布 + 分段映射实现自然连续的价格曲线
     """
-    print("📦 [1/4] 生成商品维表...")
+    print("[1/4] 生成商品维表...")
 
     # 品类 ID 池
     category_ids = np.arange(1, NUM_CATEGORIES + 1)
@@ -92,13 +88,11 @@ def generate_items():
         writer.writeheader()
         writer.writerows(items)
 
-    print(f"  ✅ 商品维表: {NUM_ITEMS:,} 条 → {ITEMS_FILE}")
+    print(f"  商品维表: {NUM_ITEMS:,} 条 -> {ITEMS_FILE}")
     return items
 
 
-# ════════════════════════════════════════════════════════════════════
-# [2] 生成用户维表 (users_simulated.csv)
-# ════════════════════════════════════════════════════════════════════
+# --- [2] 生成用户维表 (users_simulated.csv) ---
 
 def generate_users():
     """
@@ -106,7 +100,7 @@ def generate_users():
       - 年龄段: 18-24 (25%), 25-34 (35%), 35-45 (22%), 46+ (15%), 未知 (3%)
       - 渠道:   App Store (34%), 官网 (33%), 小程序 (33%)
     """
-    print("👤 [2/4] 生成用户维表...")
+    print("[2/4] 生成用户维表...")
 
     age_groups = ["18-24", "25-34", "35-45", "46+", "未知"]
     age_probs = [0.25, 0.35, 0.22, 0.15, 0.03]
@@ -130,13 +124,11 @@ def generate_users():
         writer.writeheader()
         writer.writerows(users)
 
-    print(f"  ✅ 用户维表: {NUM_USERS:,} 条 → {USERS_FILE}")
+    print(f"  用户维表: {NUM_USERS:,} 条 -> {USERS_FILE}")
     return users
 
 
-# ════════════════════════════════════════════════════════════════════
-# [3] 时间分布引擎
-# ════════════════════════════════════════════════════════════════════
+# --- [3] 时间分布引擎 ---
 
 def build_daily_weights():
     """
@@ -216,9 +208,7 @@ def build_hourly_weights():
     return hourly
 
 
-# ════════════════════════════════════════════════════════════════════
-# [4] 行为流水生成器 (UserBehavior.csv)
-# ════════════════════════════════════════════════════════════════════
+# --- [4] 行为流水生成器 (UserBehavior.csv) ---
 
 def generate_behaviors(items, users):
     """
@@ -229,7 +219,7 @@ def generate_behaviors(items, users):
       4. 价格摩擦:   高价商品降低转化概率
       5. 用户留存:   指数衰减模型决定用户活跃天数分布
     """
-    print("🔄 [3/4] 生成行为流水（核心引擎）...")
+    print("[3/4] 生成行为流水（核心引擎）...")
     t0 = time.time()
 
     # ── 预计算分布 ──
@@ -401,7 +391,7 @@ def generate_behaviors(items, users):
     actual_cart2buy = total_buy / max(total_cart, 1) * 100
     actual_pv2buy = total_buy / max(total_pv, 1) * 100
 
-    print(f"\n  ✅ 行为流水: {len(behaviors):,} 行 → {BEHAVIOR_FILE}")
+    print(f"\n  行为流水: {len(behaviors):,} 行 -> {BEHAVIOR_FILE}")
     print(f"  ─── 漏斗验证 ───")
     print(f"  PV: {total_pv:,}  |  Cart: {total_cart:,}  |  Buy: {total_buy:,}")
     print(f"  PV→Cart: {actual_pv2cart:.2f}%  |  Cart→Buy: {actual_cart2buy:.2f}%  |  PV→Buy: {actual_pv2buy:.2f}%")
@@ -410,14 +400,12 @@ def generate_behaviors(items, users):
     return behaviors
 
 
-# ════════════════════════════════════════════════════════════════════
-# [5] 数据质量报告
-# ════════════════════════════════════════════════════════════════════
+# --- [5] 数据质量报告 ---
 
 def print_quality_report(behaviors, items):
     """打印数据分布质量报告"""
     print("\n" + "=" * 60)
-    print("📊 数据质量报告")
+    print("数据质量报告")
     print("=" * 60)
 
     # 日期分布
@@ -445,7 +433,7 @@ def print_quality_report(behaviors, items):
     top_20_pct = int(len(sorted_items) * 0.2)
     top_20_traffic = sum(sorted_items[:top_20_pct])
     total_traffic = sum(sorted_items)
-    print(f"\n  📊 二八法则验证:")
+    print(f"\n  二八法则验证:")
     print(f"    Top 20% 商品流量占比: {top_20_traffic / total_traffic * 100:.1f}%")
 
     # 时段分布
@@ -460,17 +448,15 @@ def print_quality_report(behaviors, items):
     for h in range(24):
         c = hour_counter.get(h, 0)
         bar = "█" * int(c / max_h * 30)
-        label = "🔥" if h in (20, 21) else ("💤" if h in (3, 4) else "  ")
+        label = "**" if h in (20, 21) else (".." if h in (3, 4) else "  ")
         print(f"    {h:02d}:00 {label} {c:>8,} {bar}")
 
 
-# ════════════════════════════════════════════════════════════════════
-# 主入口
-# ════════════════════════════════════════════════════════════════════
+# --- 主入口 ---
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("🏪 电商模拟数据生成器 (统计分布驱动)")
+    print("电商模拟数据生成器 (统计分布驱动)")
     print(f"   时间跨度: {START_DATE.date()} ~ {END_DATE.date()} ({TOTAL_DAYS} 天)")
     print(f"   目标行数: {TARGET_ROWS:,}")
     print("=" * 60)
@@ -481,7 +467,7 @@ if __name__ == "__main__":
     print_quality_report(behaviors, items)
 
     print("\n" + "=" * 60)
-    print("✅ 全部完成！生成的文件:")
+    print("全部完成! 生成的文件:")
     print(f"   {BEHAVIOR_FILE}")
     print(f"   {ITEMS_FILE}")
     print(f"   {USERS_FILE}")

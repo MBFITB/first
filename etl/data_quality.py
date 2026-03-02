@@ -39,23 +39,23 @@ class DataQualityReport:
         """输出完整的数据质量报告"""
         elapsed = datetime.datetime.now() - self.start_time
         print("\n" + "=" * 70)
-        print("📋 数据质量报告 (Data Quality Report)")
+        print("数据质量报告 (Data Quality Report)")
         print("=" * 70)
         print(f"  执行耗时: {elapsed}")
 
-        print("\n  📊 数据量指标:")
+        print("\n  数据量指标:")
         for name, value in self.metrics.items():
             print(f"    • {name}: {value:,}" if isinstance(value, (int, float)) else f"    • {name}: {value}")
 
         if self.warnings:
-            print(f"\n  ⚠️ 质量告警 ({len(self.warnings)} 条):")
+            print(f"\n  质量告警 ({len(self.warnings)} 条):")
             for i, w in enumerate(self.warnings, 1):
                 print(f"    {i}. {w}")
         else:
-            print("\n  ✅ 无质量告警")
+            print("\n  无质量告警")
 
         if self.cluster_profiles:
-            print(f"\n  🏷️ 聚类画像 (Cluster Profiles):")
+            print(f"\n  聚类画像 (Cluster Profiles):")
             sorted_profiles = sorted(self.cluster_profiles, key=lambda x: x['user_count'], reverse=True)
             for p in sorted_profiles:
                 print(

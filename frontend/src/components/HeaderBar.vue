@@ -99,8 +99,22 @@ const handleCommand = (command) => {
 </script>
 
 <style scoped>
-.main-header { background: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; border-bottom: 1px solid #e8e8e8; height: 64px !important; }
+.main-header { 
+  background: rgba(255, 255, 255, 0.85); 
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between; 
+  padding: 0 30px; 
+  border-bottom: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  height: 64px !important; 
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
 .header-left { display: flex; align-items: center; }
-.title { font-size: 17px; font-weight: 600; color: #1f1f1f; }
-.engine-tag { font-family: monospace; font-weight: bold; font-size: 12px; }
+.title { font-size: 18px; font-weight: 700; color: #111827; letter-spacing: -0.5px; }
+.engine-tag { font-family: 'Inter', monospace; font-weight: 600; font-size: 12px; }
 </style>

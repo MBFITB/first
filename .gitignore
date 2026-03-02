@@ -39,5 +39,3 @@ dist/
 .DS_Store
 Thumbs.db
 
-# Locally ignored paths
-doc/
